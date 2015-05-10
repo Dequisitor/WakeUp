@@ -1,7 +1,8 @@
 __author__ = 'carnifex'
 
-import Weather_module
+import weather_module
 
-weather = Weather_module.Weather()
-weather.get()
-weather.read()
+weather = weather_module.Weather()
+weather.loadWeatherDataRaw()
+weather.createSentences()
+weather.readOutLoud()
