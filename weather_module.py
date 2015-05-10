@@ -48,12 +48,12 @@ class Weather(object):
 	def getWindDescription(self):
 		speed = int(self.weather['current_condition'][0]['windspeedKmph'])
 
-		i = 0
+		i = 1
 		while (WIND_TYPES[i][0] < speed):
 			print str(WIND_TYPES[i][0]) + ' < ' + str(speed)
 			i = i + 1
 
-		return WIND_TYPES[i][1]
+		return WIND_TYPES[i-1][1]
 
 	def loadWeatherDataRaw(self):
 		query_url = "q=" + self.city + "&num_of_days=1&format=json&key=" + self.apiKey
@@ -70,7 +70,8 @@ class Weather(object):
 						"Today is " + today.strftime("%A %d %B"),
 						"Its " + self.weather['current_condition'][0]['temp_C'] + " degrees celsius outside.",
 						"The weather can be described as: " + self.weather['current_condition'][0]['weatherDesc'][0]['value'] + ".",
-						"There is " + self.getWindDescription()
+						"There is " + self.getWindDescription(),
+						"Have a nice effing day!"
 					]
 
 	def readOutLoud(self):
