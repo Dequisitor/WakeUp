@@ -78,10 +78,12 @@ class Weather(object):
 	def createSentences(self):
 		today = datetime.today()
 		self.text = [	"Good morning!",
-						"Today is " + today.strftime("%A %d %B"),
+						"Today is " + today.strftime("%A %d %B") + ".",
+						"The Sun has risen at " + self.weather['weather'][0]['astronomy'][0]['sunrise'] + ".",
+						"And it will set at " + self.weather['weather'][0]['astronomy'][0]['sunset'] + ".",
 						"Its " + self.weather['current_condition'][0]['temp_C'] + " degrees celsius outside.",
 						"The weather can be described as: " + self.weather['current_condition'][0]['weatherDesc'][0]['value'] + ".",
-						"There is " + self.getWindDescription(),
+						"There is " + self.getWindDescription() + ".",
 						"Have a nice effing day!"
 					]
 
