@@ -27,15 +27,26 @@ WIND_DIRECTIONS = []
 class Weather(object):
 	tts_url = ""
 	base_url = "";
-	apiKey = "8c1d920518fe5a6aa3875b3d59897";
 	city = "";
 	text = "";
+	weather_api = "";
+	tts_api = "";
 	weather = {};
 
 	def __init__(self):
-		self.tts_url = "http://translate.google.com/translate_tts?tl=en&q="
+		self.tts_url = "http://api.voicerss.org/?hl=en-us&key="
 		self.base_url = "https://api.worldweatheronline.com/free/v2/weather.ashx?"
 		self.city = "Miskolc,hu"
+		f = open("weather.api", "r")
+		print f
+		self.weather_api = f.readline().strip()
+		print "weather api: ", self.weather_api
+		f.close()
+		f = open("tts.api", "r")
+		self.tts_api = f.readline().strip()
+		print "tts api: ", self.tts_api
+		f.close()
+
 
 	def getTargetDay(self):
 		#if its already afternoon, then get the forecast for tomorrow
@@ -56,7 +67,7 @@ class Weather(object):
 		return WIND_TYPES[i-1][1]
 
 	def loadWeatherDataRaw(self):
-		query_url = "q=" + self.city + "&num_of_days=1&format=json&key=" + self.apiKey
+		query_url = "q=" + self.city + "&num_of_days=1&format=json&key=" + self.weather_api
 		url = self.base_url + query_url
 		print url
 		result = urllib2.urlopen(url).read()
@@ -75,6 +86,7 @@ class Weather(object):
 					]
 
 	def readOutLoud(self):
+		self.tts_url = self.tts_url + self.tts_api + "&src="
 		for line in self.text:
 			print(line)
 			subprocess.call('mplayer "' + self.tts_url + line.replace(" ", "+") + '"', shell=True)
