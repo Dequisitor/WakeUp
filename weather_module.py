@@ -34,7 +34,7 @@ class Weather(object):
 	weather = {};
 
 	def __init__(self):
-		self.tts_url = "http://api.voicerss.org/?hl=en-us&key="
+		self.tts_url = "http://api.voicerss.org/?hl=en-us&f=22khz_16bit_stereo&key="
 		self.base_url = "https://api.worldweatheronline.com/free/v2/weather.ashx?"
 		self.city = "Miskolc,hu"
 		f = open("weather.api", "r")
