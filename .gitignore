@@ -1,3 +1,5 @@
-weather.api
-tts.api
-weather_module.pyc
+*
+!weather_module.py
+!main.py
+!README.md
+!.gitignore
