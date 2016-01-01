@@ -82,11 +82,17 @@ class Weather(object):
 		else:
 			return "Good evening!"
 
+        def isEarlierTime(self, time0, time1):
+            t0 = time0.tm_hour * 3600 + time0.tm_min * 60 + time0.tm_sec
+            t1 = time1.tm_hour * 3600 + time1.tm_min * 60 + time1.tm_sec
+
+            return t0 < t1
+
 	def getSunrise(self):
 		sunrise = self.weather['weather'][0]['astronomy'][0]['sunrise']
 		sunriseTime = time.strptime(sunrise, "%I:%M %p")
 
-		if self.date < sunriseTime:
+                if self.isEarlierTime(self.date, sunriseTime):
 			return "The Sun will rise at " + sunrise + ","
 		else:
 			return "The Sun has risen at " + sunrise + ","
@@ -95,7 +101,7 @@ class Weather(object):
 		sunset = self.weather['weather'][0]['astronomy'][0]['sunset']
 		sunsetTime = time.strptime(sunset, "%I:%M %p")
 
-		if self.date < sunsetTime:
+                if self.isEarlierTime(self.date, sunsetTime):
 			return "and it will set at " + sunset + "."
 		else:
 			return "and has set at " + sunset + "."
@@ -118,5 +124,5 @@ class Weather(object):
 		self.tts_url = self.tts_url + self.tts_api + "&src="
 		for line in self.text:
 			print(line)
-			#subprocess.call('mplayer "' + self.tts_url + line.replace(" ", "+") + '"', shell=True)
+			subprocess.call('mplayer "' + self.tts_url + line.replace(" ", "+") + '"', shell=True)
 
