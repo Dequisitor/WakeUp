@@ -99,7 +99,21 @@ class Weather(object):
 			return "and it will set at " + sunset + "."
 		else:
 			return "and has set at " + sunset + "."
-		
+
+        def getTemp(self):
+            temp = int(self.weather['current_condition'][0]['temp_C'])
+            feels = int(self.weather['current_condition'][0]['FeelsLikeC'])
+
+            if feels != temp:
+                return "It is " + str(temp) + " degrees celsius outside, but it feels like " + str(feels) + " degrees celsius."
+            else:
+                return "It is " + str(temp) + " degrees celsius outside."
+
+        def getPressureAndHumidity(self):
+            pressure = int(self.weather['current_condition'][0]['pressure'])
+            humidity = int(self.weather['current_condition'][0]['humidity'])
+
+            return "Pressure is " + str(pressure) + " Pascals, and humidity is " + str(humidity) + " percent."
 
 	def createSentences(self):
 		today = datetime.today()
@@ -108,10 +122,11 @@ class Weather(object):
 				"Today is " + today.strftime("%A %d %B") + ".",
 				self.getSunrise(),
 				self.getSunset(),
-				"It's " + self.weather['current_condition'][0]['temp_C'] + " degrees celsius outside.",
+				self.getTemp(),
+                                self.getPressureAndHumidity(),
 				"The weather can be described as: " + self.weather['current_condition'][0]['weatherDesc'][0]['value'] + ".",
 				"There is " + self.getWindDescription() + ".",
-				"Have a nice effing day!"
+				"Have a nice effing day, you worthless faggot!"
 			]
 
 	def readOutLoud(self):
