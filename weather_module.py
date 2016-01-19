@@ -7,23 +7,6 @@ import time
 import urllib, urllib2
 from datetime import datetime, timedelta
 
-WIND_TYPES = [
-	[1.1, 'calm'],
-	[5.5, 'light air'],
-	[11.9, 'a light breeze'],
-	[19.7, 'a gentle breeze'],
-	[28.8, 'a moderate breeze'],
-	[38.8, 'a fresh breeze'],
-	[49.9, 'a strong breeze'],
-	[61.8, 'high wind'],
-	[74.6, 'a gale'],
-	[88.1, 'a strong gale'],
-	[102.4, 'a storm'],
-	[117.4, 'a violent storm'],
-	[999, 'hurricane force']
-]
-WIND_DIRECTIONS = []
-
 class Weather(object):
 	tts_url = ""
 	base_url = "";
@@ -54,16 +37,6 @@ class Weather(object):
 			return 2
 		else:
 			return 1
-
-	def getWindDescription(self):
-		speed = int(self.weather['current_condition'][0]['windspeedKmph'])
-
-		i = 1
-		while (WIND_TYPES[i][0] < speed):
-			print str(WIND_TYPES[i][0]) + ' < ' + str(speed)
-			i = i + 1
-
-		return WIND_TYPES[i-1][1]
 
 	def loadWeatherDataRaw(self):
 		query_url = "q=" + self.city + "&num_of_days=1&format=json&key=" + self.weather_api
@@ -119,25 +92,52 @@ class Weather(object):
             pressure = int(self.weather['current_condition'][0]['pressure'])
             humidity = int(self.weather['current_condition'][0]['humidity'])
 
-            return "Pressure is " + str(pressure) + " Pascals, and humidity is " + str(humidity) + " percent."
+            return "Pressure is " + str(pressure/10) + " KiloPascals, and humidity is " + str(humidity) + " percent."
+
+        def getWind(self):
+            windkmph = int(self.weather['current_condition'][0]['windspeedKmph'])
+            winddir = self.weather['current_condition'][0]['winddir16Point']
+
+            if len(winddir) == 3:
+                direction = winddir[0] + '-' + winddir[1:]
+            else:
+                direction = winddir
+            direction = direction.replace('N', 'north')
+            direction = direction.replace('S', 'south')
+            direction = direction.replace('E', 'east')
+            direction = direction.replace('W', 'west')
+
+            return "There is a " + str(windkmph) + " kilometer per hour " + direction + "ern wind."
+
+        def getDay(self):
+            today = datetime.today()
+
+            print today
+            DoM = datetime.now().day
+            suffix = 'th'
+            if DoM % 10 == 1:
+                suffix = 'st'
+            if DoM % 10 == 2:
+                suffix = 'nd'
+
+            return "Today is " + today.strftime('%A') + ", the " + str(DoM) + suffix + " of " + today.strftime('%B') + "."
 
 	def createSentences(self):
-		today = datetime.today()
-
 		self.text = [	self.decideGreeting(),
-				"Today is " + today.strftime("%A %d %B") + ".",
+                                self.getDay(),
 				self.getSunrise(),
 				self.getSunset(),
 				self.getTemp(),
                                 self.getPressureAndHumidity(),
-				"The weather can be described as: " + self.weather['current_condition'][0]['weatherDesc'][0]['value'] + ".",
-				"There is " + self.getWindDescription() + ".",
+				"The weather is described as: " + self.weather['current_condition'][0]['weatherDesc'][0]['value'] + ".",
+                                self.getWind(),
 				"Have a nice effing day, you worthless faggot!"
 			]
 
 	def readOutLoud(self):
 		self.tts_url = self.tts_url + self.tts_api + "&src="
-		for line in self.text:
+		for index, line in enumerate(self.text):
 			print(line)
-			subprocess.call('mplayer "' + self.tts_url + line.replace(" ", "+") + '"', shell=True)
-
+                        with open(str(index) + ".wav", "wb") as wave:
+                            wave.write(urllib2.urlopen(self.tts_url + line.replace(" ", "+")).read())
+			#subprocess.call('mplayer "' + self.tts_url + line.replace(" ", "+") + '"', shell=True)
