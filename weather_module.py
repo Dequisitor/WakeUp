@@ -92,7 +92,7 @@ class Weather(object):
 		pressure = int(self.weather['current_condition'][0]['pressure'])
 		humidity = int(self.weather['current_condition'][0]['humidity'])
 
-		return "Pressure is " + str(pressure/10) + " KiloPascals, and humidity is " + str(humidity) + " percent."
+		return "Pressure is " + str(pressure) + " millibars, and humidity is " + str(humidity) + " percent."
 
 	def getWind(self):
 		windkmph = int(self.weather['current_condition'][0]['windspeedKmph'])
@@ -107,7 +107,7 @@ class Weather(object):
 		direction = direction.replace('E', 'east')
 		direction = direction.replace('W', 'west')
 
-		return "There is a " + str(windkmph) + " kilometer per hour " + direction + "ern wind."
+		return "There is a " + str(windkmph) + " kilometers per hour " + direction + "ern wind."
 
 	def getDay(self):
 		today = datetime.today()
@@ -119,6 +119,8 @@ class Weather(object):
 			suffix = 'st'
 		if DoM % 10 == 2:
 			suffix = 'nd'
+		if DoM % 10 == 3:
+			suffix = 'rd'
 
 		return "Today is " + today.strftime('%A') + ", the " + str(DoM) + suffix + " of " + today.strftime('%B') + "."
 
