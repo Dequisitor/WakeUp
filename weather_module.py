@@ -124,8 +124,52 @@ class Weather(object):
 
 		return "Today is " + today.strftime('%A') + ", the " + str(DoM) + suffix + " of " + today.strftime('%B') + "."
 
+	def getChanceOfRain(self):
+		result = 0
+		data = self.weather['weather'][0]['hourly']
+		for i in range(0, len(data)):
+			chance = int(data[i]['chanceofrain'])
+			if chance > 25:
+				result = 1 if (result < 1) else result
+			if chance > 50:
+				result = 2 if (result < 2) else result
+			if chance >75:
+				result = 3
+
+		str = 'You will not need an umbrella today.'
+		if result == 1:
+			str = 'There is a small chance for rain.'
+		elif result == 2:
+			str = 'There is a high chance for rain.'
+		elif result == 3:
+			str = 'It will be raining today, bring an umbrella.'
+
+		return str
+
+	def getChanceOfSnow(self):
+		result = 0
+		data = self.weather['weather'][0]['hourly']
+		for i in range(0, len(data)):
+			chance = int(data[i]['chanceofsnow'])
+			if chance > 25:
+				result = 1 if (result < 1) else result
+			if chance > 50:
+				result = 2 if (result < 2) else result
+			if chance >75:
+				result = 3
+
+		str = ''
+		if result == 1:
+			str = 'There is a small chance for snow.'
+		elif result == 2:
+			str = 'There is a high chance for snow.'
+		elif result == 3:
+			str = 'It will be snowing today.'
+
+		return str
+
 	def createSentences(self):
-		self.text = [	self.decideGreeting(),
+		self.text = [self.decideGreeting(),
 				self.getDay(),
 				self.getSunrise(),
 				self.getSunset(),
@@ -133,6 +177,7 @@ class Weather(object):
 				self.getPressureAndHumidity(),
 				"The weather is described as: " + self.weather['current_condition'][0]['weatherDesc'][0]['value'] + ".",
 				self.getWind(),
+				self.getChanceOfRain(),
 				"Have a nice effing day, you worthless faggot!"
 			]
 
