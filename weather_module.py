@@ -39,6 +39,7 @@ class Weather(object):
 		self.date = datetime.now(tz)
 		self.tts_url = tts_url + tts_lang + "&f=" + tts_quality + "&key=" + tts_api + "&src="
 		self.weather_url = w_url + "q=" + w_location + "&num_of_days=1&format=json&key=" + weather_api
+		self.exchange_url = exchange_url + "base=" + exchange_base + "&symbols=" + exchange_convertTo
 
 	def getTargetDay(self):
 		#if its already afternoon, then get the forecast for tomorrow
@@ -46,6 +47,14 @@ class Weather(object):
 			return 2
 		else:
 			return 1
+
+	def getExchangeRates(self):
+		result = urllib2.urlopen(self.exchange_url).read()
+		data = json.loads(result)
+
+		exchange_rate = data['rates']['HUF']
+		print exchange_rate
+		return "1 pound sterling is worth " + str(exchange_rate) + " hungarian forints."
 
 	def loadWeatherDataRaw(self):
 		result = urllib2.urlopen(self.weather_url).read()
@@ -182,6 +191,7 @@ class Weather(object):
 				"The weather is described as: " + self.weather['current_condition'][0]['weatherDesc'][0]['value'] + ".",
 				self.getWind(),
 				self.getChanceOfRain(),
+				self.getExchangeRates(),
 				"Have a nice effing day!"
 			]
 
