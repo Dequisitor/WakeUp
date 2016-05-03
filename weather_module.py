@@ -5,31 +5,40 @@ import json
 import requests
 import time
 import urllib, urllib2
+import ConfigParser
 from datetime import datetime, timedelta
+from pytz import timezone
+import pytz
 
 class Weather(object):
 	tts_url = ""
-	base_url = "";
-	city = "";
-	text = "";
-	weather_api = "";
-	tts_api = "";
-	weather = {};
+	weather_url = ""
+	city = ""
+	text = ""
+	weather = {}
 
 	def __init__(self):
-		self.date = time.localtime(time.time())
-		self.tts_url = "http://api.voicerss.org/?hl=en-gb&f=44khz_16bit_stereo&key="
-		self.base_url = "https://api.worldweatheronline.com/free/v2/weather.ashx?"
-		self.city = "Miskolc,hu"
-		f = open("weather.api", "r")
-		print f
-		self.weather_api = f.readline().strip()
-		print "weather api: ", self.weather_api
-		f.close()
-		f = open("tts.api", "r")
-		self.tts_api = f.readline().strip()
-		print "tts api: ", self.tts_api
-		f.close()
+		config = ConfigParser.ConfigParser()
+		config.read("./weather.ini") #error check
+		tts_url = config.get("TTSApi", "url")
+		tts_lang = config.get("TTSApi", "language")
+		tts_quality = config.get("TTSApi", "quality")
+		w_url = config.get("WeatherApi", "url")
+		w_location = config.get("WeatherApi", "location")
+		exchange_url = config.get("ExchangeApi", "url")
+		exchange_base = config.get("ExchangeApi", "base")
+		exchange_convertTo = config.get("ExchangeApi", "convertTo")
+		timeZone = config.get("Config", "timeZone")
+
+		config.read("./weather.api")
+		weather_api = config.get("ApiKey", "key")
+		config.read("./tts.api")
+		tts_api = config.get("ApiKey", "key")
+
+		tz = pytz.timezone(timeZone)
+		self.date = datetime.now(tz)
+		self.tts_url = tts_url + tts_lang + "&f=" + tts_quality + "&key=" + tts_api + "&src="
+		self.weather_url = w_url + "q=" + w_location + "&num_of_days=1&format=json&key=" + weather_api
 
 	def getTargetDay(self):
 		#if its already afternoon, then get the forecast for tomorrow
@@ -39,24 +48,21 @@ class Weather(object):
 			return 1
 
 	def loadWeatherDataRaw(self):
-		query_url = "q=" + self.city + "&num_of_days=1&format=json&key=" + self.weather_api
-		url = self.base_url + query_url
-		print url
-		result = urllib2.urlopen(url).read()
+		result = urllib2.urlopen(self.weather_url).read()
 		data = json.loads(result)
 
 		self.weather = data['data']
 
 	def decideGreeting(self):
-		if self.date.tm_hour < 12:
+		if self.date.time().hour < 12:
 			return "Good morning!"
-		elif self.date.tm_hour < 18:
+		elif self.date.time().hour < 18:
 			return "Good afternoon!"
 		else:
 			return "Good evening!"
 
 	def isEarlierTime(self, time0, time1):
-		t0 = time0.tm_hour * 3600 + time0.tm_min * 60 + time0.tm_sec
+		t0 = time0.hour * 3600 + time0.minute * 60 + time0.second
 		t1 = time1.tm_hour * 3600 + time1.tm_min * 60 + time1.tm_sec
 
 		return t0 < t1
@@ -65,7 +71,7 @@ class Weather(object):
 		sunrise = self.weather['weather'][0]['astronomy'][0]['sunrise']
 		sunriseTime = time.strptime(sunrise, "%I:%M %p")
 
-		if self.isEarlierTime(self.date, sunriseTime):
+		if self.isEarlierTime(self.date.time(), sunriseTime):
 			return "The Sun will rise at " + sunrise + ","
 		else:
 			return "The Sun has risen at " + sunrise + ","
@@ -110,19 +116,17 @@ class Weather(object):
 		return "There is a " + str(windkmph) + " kilometers per hour " + direction + "ern wind."
 
 	def getDay(self):
-		today = datetime.today()
-
-		print today
-		DoM = datetime.now().day
+		print self.date
+		DoM = self.date.day
 		suffix = 'th'
-		if DoM % 10 == 1:
+		if DoM % 10 == 1 and DoM != 11:
 			suffix = 'st'
-		if DoM % 10 == 2:
+		if DoM % 10 == 2 and DoM != 12:
 			suffix = 'nd'
-		if DoM % 10 == 3:
+		if DoM % 10 == 3 and DoM != 13:
 			suffix = 'rd'
 
-		return "Today is " + today.strftime('%A') + ", the " + str(DoM) + suffix + " of " + today.strftime('%B') + "."
+		return "Today is " + self.date.strftime('%A') + ", the " + str(DoM) + suffix + " of " + self.date.strftime('%B') + "."
 
 	def getChanceOfRain(self):
 		result = 0
@@ -178,11 +182,10 @@ class Weather(object):
 				"The weather is described as: " + self.weather['current_condition'][0]['weatherDesc'][0]['value'] + ".",
 				self.getWind(),
 				self.getChanceOfRain(),
-				"Have a nice effing day, you worthless faggot!"
+				"Have a nice effing day!"
 			]
 
 	def readOutLoud(self):
-		self.tts_url = self.tts_url + self.tts_api + "&src="
 		for index, line in enumerate(self.text):
 			print(line)
 			with open(str(index) + ".wav", "wb") as wave:
