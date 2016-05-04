@@ -1,45 +1,22 @@
 __author__ = 'carnifex'
 
-import subprocess
-import json
-import requests
 import time
-import urllib, urllib2
 import ConfigParser
 from datetime import datetime, timedelta
 from pytz import timezone
 import pytz
 
 class Weather(object):
-	tts_url = ""
-	weather_url = ""
-	city = ""
-	text = ""
-	weather = {}
 
 	def __init__(self):
-		config = ConfigParser.ConfigParser()
-		config.read("./weather.ini") #error check
-		tts_url = config.get("TTSApi", "url")
-		tts_lang = config.get("TTSApi", "language")
-		tts_quality = config.get("TTSApi", "quality")
-		w_url = config.get("WeatherApi", "url")
-		w_location = config.get("WeatherApi", "location")
-		exchange_url = config.get("ExchangeApi", "url")
-		exchange_base = config.get("ExchangeApi", "base")
-		exchange_convertTo = config.get("ExchangeApi", "convertTo")
-		timeZone = config.get("Config", "timeZone")
+		self.config = ConfigParser.ConfigParser()
+		self.readConfig()
 
-		config.read("./weather.api")
-		weather_api = config.get("ApiKey", "key")
-		config.read("./tts.api")
-		tts_api = config.get("ApiKey", "key")
-
+	def readConfig(self):
+		self.config.read("./weather.ini") #error check
+		timeZone = self.config.get("Config", "timeZone")
 		tz = pytz.timezone(timeZone)
 		self.date = datetime.now(tz)
-		self.tts_url = tts_url + tts_lang + "&f=" + tts_quality + "&key=" + tts_api + "&src="
-		self.weather_url = w_url + "q=" + w_location + "&num_of_days=1&format=json&key=" + weather_api
-		self.exchange_url = exchange_url + "base=" + exchange_base + "&symbols=" + exchange_convertTo
 
 	def getTargetDay(self):
 		#if its already afternoon, then get the forecast for tomorrow
@@ -47,20 +24,6 @@ class Weather(object):
 			return 2
 		else:
 			return 1
-
-	def getExchangeRates(self):
-		result = urllib2.urlopen(self.exchange_url).read()
-		data = json.loads(result)
-
-		exchange_rate = data['rates']['HUF']
-		print exchange_rate
-		return "1 pound sterling is worth " + str(exchange_rate) + " hungarian forints."
-
-	def loadWeatherDataRaw(self):
-		result = urllib2.urlopen(self.weather_url).read()
-		data = json.loads(result)
-
-		self.weather = data['data']
 
 	def decideGreeting(self):
 		if self.date.time().hour < 12:
@@ -76,8 +39,8 @@ class Weather(object):
 
 		return t0 < t1
 
-	def getSunrise(self):
-		sunrise = self.weather['weather'][0]['astronomy'][0]['sunrise']
+	def getSunrise(self, weather):
+		sunrise = weather['weather'][0]['astronomy'][0]['sunrise']
 		sunriseTime = time.strptime(sunrise, "%I:%M %p")
 
 		if self.isEarlierTime(self.date.time(), sunriseTime):
@@ -85,8 +48,8 @@ class Weather(object):
 		else:
 			return "The Sun has risen at " + sunrise + ","
 
-	def getSunset(self):
-		sunset = self.weather['weather'][0]['astronomy'][0]['sunset']
+	def getSunset(self, weather):
+		sunset = weather['weather'][0]['astronomy'][0]['sunset']
 		sunsetTime = time.strptime(sunset, "%I:%M %p")
 
 		if self.isEarlierTime(self.date, sunsetTime):
@@ -94,24 +57,24 @@ class Weather(object):
 		else:
 			return "and has set at " + sunset + "."
 
-	def getTemp(self):
-		temp = int(self.weather['current_condition'][0]['temp_C'])
-		feels = int(self.weather['current_condition'][0]['FeelsLikeC'])
+	def getTemp(self, weather):
+		temp = int(weather['current_condition'][0]['temp_C'])
+		feels = int(weather['current_condition'][0]['FeelsLikeC'])
 
 		if feels != temp:
 			return "It is " + str(temp) + " degrees celsius outside, but it feels like " + str(feels) + " degrees celsius."
 		else:
 			return "It is " + str(temp) + " degrees celsius outside."
 
-	def getPressureAndHumidity(self):
-		pressure = int(self.weather['current_condition'][0]['pressure'])
-		humidity = int(self.weather['current_condition'][0]['humidity'])
+	def getPressureAndHumidity(self, weather):
+		pressure = int(weather['current_condition'][0]['pressure'])
+		humidity = int(weather['current_condition'][0]['humidity'])
 
 		return "Pressure is " + str(pressure) + " millibars, and humidity is " + str(humidity) + " percent."
 
-	def getWind(self):
-		windkmph = int(self.weather['current_condition'][0]['windspeedKmph'])
-		winddir = self.weather['current_condition'][0]['winddir16Point']
+	def getWind(self, weather):
+		windkmph = int(weather['current_condition'][0]['windspeedKmph'])
+		winddir = weather['current_condition'][0]['winddir16Point']
 
 		if len(winddir) == 3:
 			direction = winddir[0] + '-' + winddir[1:]
@@ -137,9 +100,9 @@ class Weather(object):
 
 		return "Today is " + self.date.strftime('%A') + ", the " + str(DoM) + suffix + " of " + self.date.strftime('%B') + "."
 
-	def getChanceOfRain(self):
+	def getChanceOfRain(self, weather):
 		result = 0
-		data = self.weather['weather'][0]['hourly']
+		data = weather['weather'][0]['hourly']
 		for i in range(0, len(data)):
 			chance = int(data[i]['chanceofrain'])
 			if chance > 25:
@@ -159,9 +122,9 @@ class Weather(object):
 
 		return str
 
-	def getChanceOfSnow(self):
+	def getChanceOfSnow(self, weather):
 		result = 0
-		data = self.weather['weather'][0]['hourly']
+		data = weather['weather'][0]['hourly']
 		for i in range(0, len(data)):
 			chance = int(data[i]['chanceofsnow'])
 			if chance > 25:
@@ -181,25 +144,27 @@ class Weather(object):
 
 		return str
 
-	def createSentences(self):
-		self.text = [self.decideGreeting(),
+	def describeWeather(self, weather):
+		return "The weather is described as: " + weather['current_condition'][0]['weatherDesc'][0]['value'] + "."
+
+	def getExchangeRates(self, exchange):
+		return "One pound sterling is worth " + str(exchange) + " hungarian forints."
+
+	def createSentences(self, weather, exchange):
+		if weather is None:
+			return ["Error occurred while querying weather data."]
+		if exchange is None:
+			return ["Error occurred while querying exchange rates."]
+		text = [self.decideGreeting(),
 				self.getDay(),
-				self.getSunrise(),
-				self.getSunset(),
-				self.getTemp(),
-				self.getPressureAndHumidity(),
-				"The weather is described as: " + self.weather['current_condition'][0]['weatherDesc'][0]['value'] + ".",
-				self.getWind(),
-				self.getChanceOfRain(),
-				self.getExchangeRates(),
+				self.getSunrise(weather),
+				self.getSunset(weather),
+				self.getTemp(weather),
+				self.getPressureAndHumidity(weather),
+				self.describeWeather(weather),
+				self.getWind(weather),
+				self.getChanceOfRain(weather),
+				self.getExchangeRates(exchange),
 				"Have a nice effing day!"
 			]
-
-	def readOutLoud(self):
-		for index, line in enumerate(self.text):
-			print(line)
-			with open(str(index) + ".wav", "wb") as wave:
-				wave.write(urllib2.urlopen(self.tts_url + line.replace(" ", "+")).read())
-		for index, line in enumerate(self.text):
-			subprocess.call('mplayer -really-quiet "' + str(index) + '.wav"', shell=True)
-			subprocess.call('rm ' + str(index) + '.wav', shell=True)
+		return text

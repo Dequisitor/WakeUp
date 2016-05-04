@@ -1,6 +1,4 @@
-*
-!weather_module.py
-!weather.ini
-!main.py
-!README.md
-!.gitignore
+./*.wav
+*.pyc
+*.swp
+*.api
