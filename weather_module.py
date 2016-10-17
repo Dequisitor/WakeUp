@@ -2,9 +2,9 @@ __author__ = 'carnifex'
 
 import time
 import ConfigParser
+import pytz
 from datetime import datetime, timedelta
 from pytz import timezone
-import pytz
 
 class Weather(object):
 
@@ -13,7 +13,7 @@ class Weather(object):
 		self.readConfig()
 
 	def readConfig(self):
-		self.config.read("./weather.ini") #error check
+		self.config.read("/usr/share/WakeUp/weather.ini") #error check
 		timeZone = self.config.get("Config", "timeZone")
 		tz = pytz.timezone(timeZone)
 		self.date = datetime.now(tz)
@@ -147,7 +147,7 @@ class Weather(object):
 	def describeWeather(self, weather):
 		return "The weather is described as: " + weather['current_condition'][0]['weatherDesc'][0]['value'] + "."
 
-	def createSentences(self, weather, exchange):
+	def createSentences(self, weather):
 		if weather is None:
 			return ["Error occurred while querying weather data."]
 		text = [self.decideGreeting(),

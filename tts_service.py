@@ -12,7 +12,7 @@ class TtsService(object):
 		self.config = ConfigParser.ConfigParser()
 
 	def readConfig(self):
-		self.config.read("./weather.ini") #error check
+		self.config.read("/usr/share/WakeUp/weather.ini") #error check
 		tts_url = self.config.get("TTSApi", "url")
 		tts_lang = self.config.get("TTSApi", "language")
 		tts_quality = self.config.get("TTSApi", "quality")

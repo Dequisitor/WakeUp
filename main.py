@@ -7,10 +7,9 @@ import data_service
 def main():
 	dataService = data_service.DataService()
 	weatherData = dataService.getWeatherData()
-	exchangeData = dataService.getExchangeRates()
 
 	weather = weather_module.Weather()
-	sentences = weather.createSentences(weatherData, exchangeData)
+	sentences = weather.createSentences(weatherData)
 
 	ttsService = tts_service.TtsService()
 	ttsService.readOutLoud(sentences)
