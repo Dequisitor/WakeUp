@@ -19,7 +19,7 @@ class Weather(object):
 		self.date = datetime.now(tz)
 
 	def getTargetDay(self):
-		#if its already afternoon, then get the forecast for tomorrow
+		#if it's already afternoon, then get the forecast for tomorrow
 		if self.date.tm_hour > 12:
 			return 2
 		else:
@@ -147,24 +147,18 @@ class Weather(object):
 	def describeWeather(self, weather):
 		return "The weather is described as: " + weather['current_condition'][0]['weatherDesc'][0]['value'] + "."
 
-	def getExchangeRates(self, exchange):
-		return "One pound sterling is worth " + str(exchange) + " hungarian forints."
-
 	def createSentences(self, weather, exchange):
 		if weather is None:
 			return ["Error occurred while querying weather data."]
-		if exchange is None:
-			return ["Error occurred while querying exchange rates."]
 		text = [self.decideGreeting(),
-				self.getDay(),
-				self.getSunrise(weather),
-				self.getSunset(weather),
-				self.getTemp(weather),
-				self.getPressureAndHumidity(weather),
-				self.describeWeather(weather),
-				self.getWind(weather),
-				self.getChanceOfRain(weather),
-				self.getExchangeRates(exchange),
-				"Have a nice effing day!"
-			]
+			self.getDay(),
+			self.getSunrise(weather),
+			self.getSunset(weather),
+			self.getTemp(weather),
+			self.getPressureAndHumidity(weather),
+			self.describeWeather(weather),
+			self.getWind(weather),
+			self.getChanceOfRain(weather),
+			"Have a nice effing day, faggot!"]
+
 		return text
