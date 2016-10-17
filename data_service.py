@@ -15,7 +15,7 @@ class DataService(object):
 		self.config = ConfigParser.ConfigParser()
 
 	def readConfig(self):
-		self.config.read("./weather.ini") #error check
+		self.config.read("/usr/share/WakeUp/weather.ini") #error check
 		w_url = self.config.get("WeatherApi", "url")
 		w_location = self.config.get("WeatherApi", "location")
 		self.currency = self.config.get("ExchangeApi", "convertTo")
